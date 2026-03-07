@@ -1,2 +1,2 @@
-# Требуемая версия Python
-python>=3.8
+streamlit>=1.30
+pandas>=2.0
