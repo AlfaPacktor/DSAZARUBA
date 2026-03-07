@@ -1,5 +1,10 @@
 import streamlit as st
 import pandas as pd
+import json
+import os
+
+
+DATA_FILE = "sales_data.json"
 
 
 EMPLOYEES = [
@@ -20,12 +25,28 @@ PRODUCTS = [
 ]
 
 
+def create_empty_data():
+    return {
+        emp: {prod: 0 for prod in PRODUCTS}
+        for emp in EMPLOYEES
+    }
+
+
+def load_data():
+    if os.path.exists(DATA_FILE):
+        with open(DATA_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return create_empty_data()
+
+
+def save_data(data):
+    with open(DATA_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=4)
+
+
 def init_data():
     if "sales_data" not in st.session_state:
-        st.session_state.sales_data = {
-            emp: {prod: 0 for prod in PRODUCTS}
-            for emp in EMPLOYEES
-        }
+        st.session_state.sales_data = load_data()
 
 
 def input_section():
@@ -50,7 +71,7 @@ def input_section():
                 product,
                 min_value=0,
                 step=1,
-                key=f"value_{product}"
+                key=f"value_{employee}_{product}"
             )
 
         with col2:
@@ -58,7 +79,7 @@ def input_section():
                 "Операция",
                 ["+", "-"],
                 horizontal=True,
-                key=f"op_{product}"
+                key=f"op_{employee}_{product}"
             )
 
         entries[product] = (value, operation)
@@ -74,7 +95,9 @@ def input_section():
                 else:
                     st.session_state.sales_data[employee][product] -= value
 
-        st.success("Данные обновлены")
+        save_data(st.session_state.sales_data)
+
+        st.success("Данные обновлены и сохранены")
 
 
 def leaderboard():
@@ -133,5 +156,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
